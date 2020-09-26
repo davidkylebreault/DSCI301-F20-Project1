@@ -1,0 +1,177 @@
+---
+title: "CleanData.R"
+author: "David Kyle Breault"
+date: "9/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(readr)
+```
+
+Obtained multiple datasets of the same variables in order to have a larger collection of data. Added a column saying where the data was gathered from. Then join them.
+
+zoo.csv: 18 columns, 101 rows.
+What does it measure: Dataset containing information on a variety of animal species that could be helpful in machine learning. This data for this project will not be used for machine learning, but will instead be interpreted by a person to look for relationships. This data is used for classification, in other words, based off of what anatomical features this species has, how should it be listed taxonomically?
+
+How was it collected: Dataset was collected from a zoo (unspecified). Collected by UCI Machine Learning (https://www.kaggle.com/uciml/zoo-animal-classification/metadata)
+
+18 columns, with hair, feathers, eggs, milk, airborne, aquatic, predator, toothed, backbone, breahtes, venomous, fins, tail, domestic, and catsize being boolean. animal_name is unique for each row, and class_type is numeric, but represents a specific character (species type). legs are numeric, and are in values of 0,2,4,6,8.
+
+What columns will I make use of?
+Will include a row that specifies where this data came from.
+
+zoo2.csv: 18 columns, 43 rows
+
+What does it measure: an extension of the originial zoo.csv dataset with more species that are not mammals or birds in order to help make a more diverse dataset to determine what pararameters are important for classifying species.
+
+How ws it collected: unspecified. Collected by Rodrigo Hjort (https://www.kaggle.com/agajorte/zoo-animals-extended-dataset)
+
+Will include row that specifies where the data came from
+
+zoo3.csv: 18 columns, 70 rows
+
+What does it measure: an extension of the original zoo.csv dataset with more species being mainly animals from brazil that are in danger of extinction
+
+How was it collected: São Paulo Zoo. Collected by Rodrigo Hjort (https://www.kaggle.com/agajorte/zoo-animals-extended-dataset)
+
+Will include row that specifies where the data came from
+
+```{r}
+Project1.here <- ("zoo.csv")
+Project1 <- read_csv(Project1.here,
+                     col_types = cols(
+  animal_name = col_character(),
+  hair = col_logical(),
+  feathers = col_logical(),
+  eggs = col_logical(),
+  milk = col_logical(),
+  airborne = col_logical(),
+  aquatic = col_logical(),
+  predator = col_logical(),
+  toothed = col_logical(),
+  backbone = col_logical(),
+  breathes = col_logical(),
+  venomous = col_logical(),
+  fins = col_logical(),
+  legs = col_double(),
+  tail = col_logical(),
+  domestic = col_logical(),
+  catsize = col_logical(),
+  class_type = col_character()
+))
+```
+
+```{r}
+Project1[,"data origin"] <- "zoo.csv"
+
+## Code from http://www.cookbook-r.com/Manipulating_data/Adding_and_removing_columns_from_a_data_frame/
+```
+
+Load zoo2.csv
+
+```{r}
+Project1.2.here <- ("zoo.csv")
+Project1.2 <- read_csv(Project1.2.here,
+                     col_types = cols(
+  animal_name = col_character(),
+  hair = col_logical(),
+  feathers = col_logical(),
+  eggs = col_logical(),
+  milk = col_logical(),
+  airborne = col_logical(),
+  aquatic = col_logical(),
+  predator = col_logical(),
+  toothed = col_logical(),
+  backbone = col_logical(),
+  breathes = col_logical(),
+  venomous = col_logical(),
+  fins = col_logical(),
+  legs = col_double(),
+  tail = col_logical(),
+  domestic = col_logical(),
+  catsize = col_logical(),
+  class_type = col_character()
+))
+```
+
+
+```{r}
+Project1.2[,"data origin"] <- "zoo2.csv"
+
+## Code from http://www.cookbook-r.com/Manipulating_data/Adding_and_removing_columns_from_a_data_frame/
+```
+
+Load zoo3.csv
+
+```{r}
+Project1.3.here <- here("zoo3.csv")
+Project1.3 <- read_csv(Project1.3.here,
+                     col_types = cols(
+  animal_name = col_character(),
+  hair = col_logical(),
+  feathers = col_logical(),
+  eggs = col_logical(),
+  milk = col_logical(),
+  airborne = col_logical(),
+  aquatic = col_logical(),
+  predator = col_logical(),
+  toothed = col_logical(),
+  backbone = col_logical(),
+  breathes = col_logical(),
+  venomous = col_logical(),
+  fins = col_logical(),
+  legs = col_double(),
+  tail = col_logical(),
+  domestic = col_logical(),
+  catsize = col_logical(),
+  class_type = col_character()
+))
+```
+
+```{r}
+Project1.3[,"data origin"] <- "zoo3.csv"
+
+## Code from http://www.cookbook-r.com/Manipulating_data/Adding_and_removing_columns_from_a_data_frame/
+```
+
+zoo.final has a total of 19 columns (the original 18 plus the mutated column) and 315 rows
+
+```{r}
+zoo.final <- Project1%>%
+  full_join(Project1.2)%>%
+  full_join(Project1.3)
+
+## Code from R for Datascience by Hadley Wickham & Garrett Grolemund, Chapter 10: Relational Data with dplyr
+```
+
+
+For class_types, the names are numeric but represent character values (species type) so adding a row representing this may be helpful. This will be done by using the class_type names as specified in the data summary. 1 being mammal, 2 bird, 3 reptile, 4 fish, 5 amphibian, 6 insect, 7 non-insect invertebrate (Note: 6 is bug in the data summary, and 7 is invertebrate in the data summary. However, all bugs are insects, but not all insects are bugs, and for class_type 6, insect is more accurate given the species in the data set (as some of the species given are insects but not bugs). For 7, invertebrate is too broad of a term, as that includes insects, so this name designation was given non insect invertebrates as a result)
+
+```{r}
+
+## Give a new column called species_type to more accurately reflect the type of species
+zoo.final <- zoo.final%>%
+  mutate(species_type=
+           case_when(
+    class_type=="1"~"mammal",
+    class_type=="2"~"bird",
+    class_type=="3"~"reptile",
+    class_type=="4"~"fish",
+    class_type=="5"~"amphibian",
+    class_type=="6"~"insect",
+    class_type=="7"~"non-insect invertebrate"
+  ))
+```
+
+## two datasets were merged together, so will need to look at the specific metadata for both
+
+## Combined zoo.csv, zoo2.csv, and zoo3.csv from Kaggle
+
+#3 can maybe explore the relatedness of species
