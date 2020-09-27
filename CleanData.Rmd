@@ -74,10 +74,16 @@ Project1[,"data origin"] <- "zoo.csv"
 ## Code from http://www.cookbook-r.com/Manipulating_data/Adding_and_removing_columns_from_a_data_frame/
 ```
 
+```{r}
+Project1$animal_name <- sub(" ", "_", Project1$animal_name)
+
+## Code from https://stackoverflow.com/questions/53107014/replace-space-between-two-words-with-an-underscore-in-a-vector
+```
+
 Load zoo2.csv
 
 ```{r}
-Project1.2.here <- ("zoo.csv")
+Project1.2.here <- ("zoo2.csv")
 Project1.2 <- read_csv(Project1.2.here,
                      col_types = cols(
   animal_name = col_character(),
@@ -106,6 +112,13 @@ Project1.2 <- read_csv(Project1.2.here,
 Project1.2[,"data origin"] <- "zoo2.csv"
 
 ## Code from http://www.cookbook-r.com/Manipulating_data/Adding_and_removing_columns_from_a_data_frame/
+```
+
+
+```{r}
+Project1.2$animal_name <- sub(" ", "_", Project1.2$animal_name)
+
+## Code from https://stackoverflow.com/questions/53107014/replace-space-between-two-words-with-an-underscore-in-a-vector
 ```
 
 Load zoo3.csv
@@ -141,7 +154,13 @@ Project1.3[,"data origin"] <- "zoo3.csv"
 ## Code from http://www.cookbook-r.com/Manipulating_data/Adding_and_removing_columns_from_a_data_frame/
 ```
 
-zoo.final has a total of 19 columns (the original 18 plus the mutated column) and 315 rows
+```{r}
+Project1.3$animal_name <- sub(" ", "_", Project1.3$animal_name)
+
+## Code from https://stackoverflow.com/questions/53107014/replace-space-between-two-words-with-an-underscore-in-a-vector
+```
+
+zoo.final has a total of 19 columns (the original 18 plus the mutated column) and 214 rows
 
 ```{r}
 zoo.final <- Project1%>%
@@ -175,3 +194,108 @@ zoo.final <- zoo.final%>%
 ## Combined zoo.csv, zoo2.csv, and zoo3.csv from Kaggle
 
 #3 can maybe explore the relatedness of species
+
+# relationship between catsize and domestic
+
+```{r}
+zoo.final %>%
+  group_by(species_type) %>%
+  summarize(Percent_venomous = mean(venomous)) %>%
+  ggplot()+
+  geom_col(aes(y=Percent_venomous,x=species_type,fill=species_type))+
+  labs(title="Species that are Venomous",
+       x="Class Type",
+       y="Percent of Venomous Species", fill = "Species")
+
+## Which species has the most overall data entries? can say that because reptiles have more will explore that into more detail
+```
+
+Most of the species that are venomous in this dataset are non insect invertebrates. What species are contributing to this distribution? What species are driving this up (for example, archnids)? Also most amphibians are not venomous, so what is going on with that? Could they have been mistaken for posionous (venomous: It bites you, you die vs. poisonous: you bite it you die.)
+
+```{r}
+## What is going on with the amphibians?
+
+zoo.final%>%
+  group_by(species_type)%>%
+  select(animal_name,species_type,venomous)%>%
+  filter(venomous==TRUE, species_type=="amphibian")
+
+```
+
+The sample size for the amphibians species was small enought that the results for the percentages was skewed. Due to this there are only three entries for the amphibians that are venomous.`frog` cannot be looked at in further detail, because it is not specified in zoo.csv. However, ra-flecha-azul (which is portugese) is also known as the blue arrow frog, which is poisionous. Sapo-cururu is portugese for Rhinella icterica, which also poisionous, not venomous.
+
+## WILL NEED TO CHANGE THAT TO FALSE
+
+```{r}
+zoo.final%>%
+  group_by(species_type)%>%
+  filter(animal_name=="frog")
+```
+
+The species 'frog' came from two different datasets. Looking at the data spreadsheets the first term got dropped from the 'frog' name. For zoo2.csv one should be the tree frog, the other dart frog. For zoo.csv, both frogs are listed as 'frog' but have different data values, which leads me to believe they are different species which were not specified. In addition, were all species that had a two part name have the first name dropped once the data was uploaded? This could be due to the space in the name.
+
+```{r}
+## Check with a different species found in zoo.csv if it dropped the 'wart' in toad
+zoo.final%>%
+  group_by(species_type)%>%
+  filter(animal_name=="toad")
+```
+
+
+```{r}
+## What non insect invertebrates are driving up the percentage?
+
+zoo.final%>%
+  filter(species_type=="non-insect invertebrate")
+```
+
+
+
+```{r}
+zoo.final%>%
+  filter(species_type=="reptile", legs=="0")%>%
+  select(animal_name,species_type,venomous)%>%
+    mutate(snake=
+           case_when(
+    species_type=="reptile"~"snake"))->snake
+
+## One species incldued, being slowworm is a legless lizard, but for sake of this analysis will be treated as a snake
+
+zoo.final%>%
+  filter(species_type=="reptile", legs=="4")%>%
+  select(animal_name,species_type,venomous)%>%
+    mutate(snake=
+           case_when(
+    species_type=="reptile"~"non_snake"))->non_snake
+
+## Join the data together
+  
+snakevslizard<- snake%>%
+  full_join(non_snake)
+  
+```
+
+```{r}
+snakevslizard%>%
+  group_by(snake)%>%
+  ggplot()+
+  geom_bar(mapping=aes(x=snake, y=snake, fill=venomous))
+
+help(geom_bar)
+
+```
+
+
+```{r}
+zoo.final%>%
+  group_by(species_type)%>%
+  select(animal_name,domestic,catsize)%>%
+  filter(domestic==FALSE, catsize==TRUE)%>%
+  count()
+ 
+```
+
+# Should figure out the total amount of species in the data of each type
+# venemous by species type
+
+This dataset is constrained by the sample size. Even with the added data entries signifigant anaylsis is limited. An even larger data set with a randomization of species (not constrained to ones at a zoo) may be better for machine learning and classification purposes. In addition, some of the information is not classified correctly (such as venomous in amphibians, which may skew the ability of proper machine learning.)
