@@ -1,49 +1,153 @@
 ---
-title: "Project 1"
-author: "John W. Hoggard"
-date: "2020-09-22"
-output:
-  html_document: default
-  pdf_document: default
+title: "Report1"
+author: "David Kyle Breault"
+date: "9/29/2020"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Project 1 will consist of an exploratory data analysis of the data set you chose earlier.
 
-You need to have three files in your repository (although you may have others, if you wish):
+```{r}
+source("CleanData.R")
+```
 
-* The data set you chose.
-* A script, `CleanData.R`, which completes the steps needed to load and clean your data.  This will allow someone else (like your professor) to automatically perform your first loading and cleaning steps on the data.  (You can run this from your RMarkdown document using `source(CleanData.R)`, if it is in the same directory.)
-* A report, written in RMarkdown, which will cover the points below.
+## Loading and Cleaning Data
 
-Make sure your commit to be graded is pushed to GitLab by the end of **Friday, October 2.**.
+Obtained multiple datasets of the same variables in order to have a larger collection of data, which were parsed and joined together. The final dataset (zoo.final) had two additionally mutated columns (see `Dataset Information`). There we no `NA` values in any of the joined, or final, dataset.
 
----
+For parsing, every entry (with the exception of animal_name which was a character) was entered as a double. However, all the entries listed as doubles, not counting `legs` or `class_type` used the 1 and 0 to represent TRUE and FALSE. For this reason, all of those entries were parsed manually to be a logical, since that is what the 1 and 0's were for Boolean data. `legs` was left as a double, and `animal_name` left as a character; however, `class_type` was parsed as a character, due to the fact that each number in the class_type column represented a specific animal (see below).
 
-1. First, get your data loaded into R.  Start the `CleanData.R` file by loading the data. (I recommend having the data file in the current directory.)
+For class_types, the names are numeric but represent character values (species type) so adding a row representing `species_type` was helpful. This was done by using the class_type names (what species type represents what number) as specified in the data summary. 1 being mammal, 2 bird, 3 reptile, 4 fish, 5 amphibian, 6 insect, 7 non-insect invertebrate (Note: 6 is bug in the data summary, and 7 is invertebrate in the data summary. However, all bugs are insects, but not all insects are bugs, and for class_type 6, insect is more accurate given the species in the data set (as some of the species given are insects but not bugs)). For 7, invertebrate is too broad of a term, as that includes insects, so this name designation was given non-insect invertebrates as a result).
 
-    In your report, include a section "Loading and Cleaning the Data", in which you briefly describe the process, including any unusual choices you made about modifying or cleaning data in the file you obtained.
-    
-    In particular, was there any "messy" data that you had to deal with?  Did you identify any missing (`NA`) values?  Is there any clearly (or possibly) incorrect data in your data set, and if so, how did you choose to deal with it?  All preparatory loading and cleaning should be carried out by this file.
-    
-    This section (and the `CleanData.R` file) will naturally grow and change as you work on your report.
-  
-2. In a section of your report, briefly describe the data set.  Explain what it measures, how it was collected (if that information is available), how many rows there are, and provide a description of any columns you intend to make use of.  (You may include questions you cannot answer; it is sometimes the case that we don't know for sure what raw data from someone else represents.  But include your best guesses.)  
-    
-2. Explore the data by individual variables.  If there are missing values or bad data, identify and deal with them.  (Remember to add these to your `CleanData.R` script, and to your "Loading and Cleaning" section.)
+The `venomous` column name was changed to `venomous.poisonous`, as there is a distinctive difference between a venomous species and a poisonous species. When exploring data on amphbians, it was noted that some species listed were venomous instead of poisonous. Evidence of this is ra-flecha-azul (which is portugese), also known as the blue arrow frog, which is poisionous. Sapo-cururu, portugese for Rhinella icterica, is also poisonous, but listed as venomous. This issue could be prevelant in other areas of the dataset. For this reason, the column name was changed to `venomous.poisonous`.
 
-    Include in your report a more detailed analysis of at least two different variables in your data set.  In this analysis, include:
-     a. Something interesting you found in the data set.  (You may have to explore your data set for a while, but "interesting" is loosely defined here.)
-     b. At least one graph generated by `ggplot` and at least one table generated by `dplyr`.
-     c. If your data set includes both categorical and numerical variables, include at least one of each in your analysis as well.
-3. Explore the interactions of variables in your data set.  Report on one interesting relationship you believe you found between at least two variables in your data set.  (It is your choice how you explore and represent this relationship.)
-4. Include a brief conclusion.  Indicate currently remaining questions and some other possible avenues for further exploration, including possible additional data you would like to obtain.
+There are also errors in the `legs` column; however, no changes were made to that column at this time (see errors in `Exploratory Analysis`).
 
-A few final notes:
+## Dataset information
 
-* As you work, you may find more examples of bad data values you wish to remove or change. Edit the "Loading and Cleaning the Data" section of your report, and update your `CleanData.R` as you find these changes.  (If you are making changes, it might be a good idea to re-run your script to make sure you are looking at the data set using the correct processing.)
-* This is fairly open-ended, and should be driven by some questions you might have about your data set.  See your professor if you are struggling for ideas.
-* You may feel free to consult any sources you wish. If you take anything significant from a source, cite it in your report.  (Rather than a proper Bibliography, you can just cite directly in the text.)
+Three datasets were utalized in exploratory analysis:
+
+zoo.csv: 18 columns, 101 rows.
+
+What it measures: Dataset containing information on a variety of animal species that could be helpful in machine learning. The data for this project will not be used for machine learning, but will instead be interpreted by a person to look for relationships. This data is used for classification, in other words, based off of what anatomical features this species has, how should it be listed taxonomically?
+
+How was it collected: Dataset was collected from a (unspecified) zoo. Collected by UCI Machine Learning (https://www.kaggle.com/uciml/zoo-animal-classification/metadata)
+
+What it contains: 18 columns, with hair, feathers, eggs, milk, airborne, aquatic, predator, toothed, backbone, breahtes, venomous, fins, tail, domestic, and catsize being boolean. animal_name is unique for each row, and class_type is numeric, but represents a specific character (species type). legs are numeric, and are in values of 0,2,4,6,8.
+
+What columns were used: venomous.posionous, animal_name, legs,and aquatic
+
+zoo2.csv: 18 columns, 43 rows
+
+What does it measure: an extension of the original zoo.csv dataset with more species that are not mammals or birds in order to help make a more diverse dataset to determine what pararameters are important for classifying species.
+
+How ws it collected: unspecified. Collected by Rodrigo Hjort (https://www.kaggle.com/agajorte/zoo-animals-extended-dataset)
+
+What columns were used: venomous.posionous, animal_name, legs,and aquatic
+
+zoo3.csv: 18 columns, 70 rows
+
+What does it measure: an extension of the original zoo.csv dataset with more species being mainly animals from brazil that are in danger of extinction
+
+How was it collected: São Paulo Zoo. Collected by Rodrigo Hjort (https://www.kaggle.com/agajorte/zoo-animals-extended-dataset)
+
+What columns were used: venomous.posionous, animal_name, legs,and aquatic
+
+zoo.final: 20 columns, 214 rows
+
+What does it measure: zoo.final is zoo.csv, zoo2.csv, and zoo3.csv joined together. This dataset measures the same paramaters as each individual dataset. Two mutated columns were added, being species_type and data origin.
+
+What columns were used: venomous.posionous, animal_name, legs,and aquatic (original dataset) species_type (mutated extra column)
+
+
+## Exploratory Analysis
+
+What are the trends with venomous species?
+
+```{r}
+zoo.final %>%
+  group_by(species_type) %>%
+  summarize(Percent_venomous = mean(venomous.poisonous)) %>%
+  ggplot()+
+  geom_col(aes(y=Percent_venomous,x=species_type,fill=species_type))+
+  labs(title="Species that are Venomous",
+       x="Class Type",
+       y="Percent of Venomous Species", fill = "Species")
+```
+
+
+For the summarize function, the mean of venomous species was taken. This is because taking the average of a logical will result in a percent. Because there are a different amount of entries for each `species_type`(ie: how many total mammals there are in the data set vs fish) taking the percent will give a more accurate count of the data to understand relationships.
+
+Most of the species that are venomous in this dataset are non insect invertebrates. This number is most likley do to the prevalence of arachnids which are commonly venomous.The bar for amphibians is noted by the poisonous species. For reptiles what species be driving up the value of venomous species? Reptiles are made up of species that are snakes (0 legs) and non-snakes (4 legs). Are non-snakes or snakes driving up the distribution of venomous species.
+
+```{r}
+zoo.final%>%
+  filter(species_type=="reptile", animal_name!="slowworm")%>%
+  select(animal_name,species_type,venomous.poisonous,legs)%>%
+  mutate(snake=
+           case_when(
+             legs=="4"~"non-snake",
+             legs=="0"~"snake"
+           ))%>%
+  ggplot()+
+geom_bar(mapping=aes(x=snake,fill=venomous.poisonous))+
+  labs(title="Species that are Venomous",
+       x="Snake or not a Snake",
+       y="Number of Species", fill = "Venomous")
+
+## One species incldued, being slowworm is a legless lizard, so it was filtered out for this analysis
+```
+
+How is a single variable (legs) represented in the dataset?
+
+```{r}
+zoo.final%>%
+  summarise(avg_legs=mean(legs))
+```
+
+The summarise function was used to create summary statistics for the average number of legs in the whole dataset. Most terrestrial vertebrate groups have four legs, being mammals, reptiles, and amphibians with the exception of 2 for birds. Most of the dataset falls into a terrestrial vertebrate group, so waht could be bring down this average
+
+```{r}
+zoo.final%>%
+  group_by(species_type)%>%
+  summarise(avg_legs=mean(legs))%>%
+  ggplot(aes(x=species_type,y=avg_legs))+
+    geom_col(aes(fill=species_type))+ labs(title="Average Number of Legs",
+       x="Class Type",
+       y="Average Leg Number", fill = "Species")
+
+```
+
+All parts of the distribution make sense except for mammals and  amphbians which deviate from the expected (4 legs). Birds have 2 legs (expected), insect have 6 (expected), noninsect invertebrates is about 3 (expected, arachnids (8 legs) and other invertebrates like molluscs (0 legs)) and reptile with a little over 2 (expected, snakes bring down the average)
+
+Take a look at amphbians first:
+
+```{r}
+zoo.final%>%
+  filter(species_type=="amphibian")%>%
+  select(animal_name,legs)
+```
+
+For amphibians, the leg average is being brought down by a siren, which was correctly listed as having two legs.
+
+For mammals however, unless an aquatic species (such as dolphins or whales) are in the dataset, a leg value less than 4 is not expected.
+
+```{r}
+## Let's see if aquatic species bring down the average
+
+zoo.final%>%
+  filter(aquatic==TRUE, species_type=="mammal")%>%
+  select(aquatic,species_type,animal_name, legs)
+
+```
+
+For mammals, the average leg number is brought down by these aquatic species. However, some are reported as having legs when they do not, such as the sealion and peixe-boi (manatee). While the sealion has functional legs (can use flippers as legs on land) they lack true leg anatomy. In addition, manatees are solely aquatic species, meaning they lack even functional legs.
+
+## Conclusion
+
+This dataset is constrained by the sample size. Even with the added data entries signifigant anaylsis is limited. An even larger data set with a randomization of species (not constrained to ones at a zoo) may be better for machine learning and classification purposes. In addition, some of the information is not classified correctly (such as venomous in amphibians,or inaccurate leg count, which may skew the ability of proper machine learning.) 
+
+I believe that the variables themselves are diagnostic for classifying species and will be ample for machine learning. Seperating out venomous and poisonous species should occur. However, the datasets need to be larger in order to have a more represenative sample. The sample is too small to make any signifigant analysis. Further questions could explore the impact of `venomous` on other variables besides species type, such as aquatic, legs, and catsize. Looking at the relationship between domestication and catsize may also prove to be an interesting analysis. Further studies should continue to check the accuracy of the data and note any inconsistencies that appear.
